@@ -1,0 +1,16 @@
+import Joi from "joi";
+
+const createCategorySchema = Joi.object({
+  name: Joi.string().min(3).max(20).required(),
+});
+
+const getCategorySchema = Joi.object({
+  id: Joi.string().hex().length(24).required(),
+});
+
+const updateCategorySchema = Joi.object({
+  name: Joi.string().min(3).max(20),
+  id: Joi.string().hex().length(24).required(),
+});
+
+export { createCategorySchema, getCategorySchema,updateCategorySchema };
