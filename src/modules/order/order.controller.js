@@ -103,8 +103,6 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
 });
 
 const createOnlineOrder = catchAsyncError(async (request, response, next) => {
-  console.log("here ");
-
   const stripe = new Stripe(process.env.STRIPE_KEY);
   const sig = request.headers["stripe-signature"].toString();
   let event;
@@ -152,7 +150,7 @@ async function handleCheckoutEvent(e, res, next) {
       },
     }));
     await productModel.bulkWrite(options);
-    await cartModel.findByIdAndDelete({ user: user._id });
+    await cartModel.findOneAndDelete({ user: user._id });
 
     return res.status(201).json({ message: "success", order });
   } else {
