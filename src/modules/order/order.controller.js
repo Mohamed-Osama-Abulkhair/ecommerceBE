@@ -102,7 +102,9 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
   res.status(200).json({ message: "success", session });
 });
 
-const createOnlineOrder = catchAsyncError(async (request, response) => {
+const createOnlineOrder = catchAsyncError(async (request, response, next) => {
+  console.log("here ");
+
   const stripe = new Stripe(process.env.STRIPE_KEY);
   const sig = request.headers["stripe-signature"].toString();
   let event;
@@ -118,14 +120,14 @@ const createOnlineOrder = catchAsyncError(async (request, response) => {
 
   if (event.type == "checkout.session.completed") {
     console.log(event.data.object);
-    return await handleCheckoutEvent(event.data.object, response);
+    return await handleCheckoutEvent(event.data.object, response, next);
   }
 
   console.log("fail ", event.type);
   return console.log("paid not completed");
 });
 
-async function handleCheckoutEvent(e, res) {
+async function handleCheckoutEvent(e, res, next) {
   const cart = await cartModel.findById(e.client_reference_id);
   if (!cart) return next(new appError("cart not found", 404));
 
