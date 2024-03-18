@@ -102,7 +102,7 @@ const createCheckOutSession = catchAsyncError(async (req, res, next) => {
   res.status(200).json({ message: "success", session });
 });
 
-const createOnlineOrder = catchAsyncError(async (request, response, next) => {
+const createOnlineOrder = catchAsyncError(async (request, response) => {
   const stripe = new Stripe(process.env.STRIPE_KEY);
   const sig = request.headers["stripe-signature"].toString();
   let event;
@@ -121,7 +121,8 @@ const createOnlineOrder = catchAsyncError(async (request, response, next) => {
     return await handleCheckoutEvent(event.data.object, response);
   }
 
-  return next(new appError("paid not completed", 404));
+  console.log("fail ", event.type);
+  return console.log("paid not completed");
 });
 
 async function handleCheckoutEvent(e, res) {
