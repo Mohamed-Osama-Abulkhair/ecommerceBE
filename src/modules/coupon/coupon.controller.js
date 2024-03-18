@@ -86,7 +86,8 @@ const getCouponUserGift = catchAsyncError(async (req, res, next) => {
   next(
     new appError(
       `You have already received a coupon within the last 24 hours, remain: ${
-        24 - hoursPassed,
+        24 - hoursPassed
+      } hours`,
       401
     )
   );
