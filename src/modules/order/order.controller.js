@@ -117,12 +117,10 @@ const createOnlineOrder = catchAsyncError(async (request, response, next) => {
   }
 
   if (event.type == "checkout.session.completed") {
-    console.log(event.data.object);
     return await handleCheckoutEvent(event.data.object, response, next);
   }
 
-  console.log("fail ", event.type);
-  return console.log("paid not completed");
+  return next(new appError("paid not completed", 400));
 });
 
 async function handleCheckoutEvent(e, res, next) {
