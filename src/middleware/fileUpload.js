@@ -1,29 +1,13 @@
-import multer from "multer";
+import multer, { diskStorage } from "multer";
 import { appError } from "../utils/appError.js";
 
-let options = (folderName) => {
-  const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, `uploads/${folderName}`);
-    },
-    filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      cb(null, uniqueSuffix + "-" + file.originalname);
-    },
-  });
+export const fileUpload = () => {
+  const fileFilter = (req, file, cb) => {
+    if (!["image/png", "image/jpeg"].includes(file.mimetype))
+      return cb(new appError("Only PNG and JPEG images are allowed", 400), false);
 
-  function fileFilter(req, file, cb) {
-    if (file.mimetype.startsWith("image")) {
-      cb(null, true);
-    } else {
-      cb(new appError("image only", 400), false);
-    }
-  }
-  return multer({ storage, fileFilter });
+    return cb(null, true);
+  };
+  return multer({ storage: diskStorage({}), fileFilter });
 };
 
-export const uploadSingleFile = (fieldName, folderName) =>
-  options(folderName).single(fieldName);
-
-export const uploadMixOfFiles = (arrayOfFields, folderName) =>
-  options(folderName).fields(arrayOfFields);

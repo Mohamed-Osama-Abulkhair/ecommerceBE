@@ -5,9 +5,9 @@ import { productModel } from "../../../databases/models/product.model.js";
 import { orderModel } from "../../../databases/models/order.model.js";
 import Stripe from "stripe";
 import { userModel } from "../../../databases/models/user.model.js";
+import { ApiFeatures } from "../../utils/ApiFeatures.js";
 
 // 1- create Cash Order
-
 const createCashOrder = catchAsyncError(async (req, res, next) => {
   const cart = await cartModel.findById(req.params.id);
   if (!cart) return next(new appError("cart not found", 404));
@@ -19,6 +19,7 @@ const createCashOrder = catchAsyncError(async (req, res, next) => {
     user: req.user._id,
     orderItems: cart.cartItems,
     totalOrderPrice,
+    orderDiscount: cart.discount + " %",
     shippingAddress: req.body.shippingAddress,
   });
   await order.save();
@@ -40,23 +41,36 @@ const createCashOrder = catchAsyncError(async (req, res, next) => {
 });
 
 const getSpecificOrder = catchAsyncError(async (req, res, next) => {
-  let order = await orderModel
-    .findOne({ user: req.user._id })
+  const order = await orderModel
+    .find({ user: req.user._id })
     .populate("orderItems.product");
 
-  !order && next(new appError("order not found", 401));
-  order && res.status(200).json({ message: "success", order });
+  !order.length && next(new appError("orders not found", 401));
+  order.length && res.status(200).json({ message: "success", order });
 });
 
 const getAllOrders = catchAsyncError(async (req, res, next) => {
-  let orders = await orderModel.find({}).populate("orderItems.product");
+  const apiFeatures = new ApiFeatures(
+    orderModel.find().populate("orderItems.product"),
+    req.query
+  )
+    .paginate()
+    .filter()
+    .sort()
+    .search()
+    .fields();
 
-  !orders.length && next(new appError("order not found", 401));
-  orders.length && res.status(200).json({ message: "success", orders });
+  const result = await apiFeatures.mongooseQuery;
+
+  !result.length && next(new appError("Not orders added yet", 404));
+  result.length &&
+    res
+      .status(200)
+      .json({ message: "success", page: apiFeatures.page, result });
 });
 
 const createCheckOutSession = catchAsyncError(async (req, res, next) => {
-const stripe = new Stripe(process.env.STRIPE_KEY);
+  const stripe = new Stripe(process.env.STRIPE_KEY);
 
   const cart = await cartModel.findById(req.params.id);
   if (!cart) return next(new appError("cart not found", 404));
@@ -79,7 +93,7 @@ const stripe = new Stripe(process.env.STRIPE_KEY);
     ],
     payment_method_types: ["card"],
     mode: "payment",
-    success_url: process.env.SUCCESSFUL_URL, 
+    success_url: process.env.SUCCESSFUL_URL,
     cancel_url: process.env.CANCEL_URL,
     customer_email: req.user.email,
     client_reference_id: req.params.id,
@@ -88,35 +102,32 @@ const stripe = new Stripe(process.env.STRIPE_KEY);
   res.status(200).json({ message: "success", session });
 });
 
-const createOnlineOrder = catchAsyncError((request, response) => {
+const createOnlineOrder = catchAsyncError(async (request, response, next) => {
+  const stripe = new Stripe(process.env.STRIPE_KEY);
   const sig = request.headers["stripe-signature"].toString();
-
   let event;
-
   try {
     event = stripe.webhooks.constructEvent(
       request.body,
       sig,
-      "whsec_k3tsOw0sboEpBQzy1hstH9MtBKeXpTPG"
+      process.env.ENDPOINT_SECRET
     );
   } catch (err) {
     return response.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Handle the event
   if (event.type == "checkout.session.completed") {
-    const checkoutSessionCompleted = event.data.object;
-    console.log("order online");
-  } else {
-    console.log(`Unhandled event type ${event.type}`);
+    return await handleCheckoutEvent(event.data.object, response);
   }
+
+  return next(new appError("paid not completed", 404));
 });
 
-async function card(e, res) {
+async function handleCheckoutEvent(e, res) {
   const cart = await cartModel.findById(e.client_reference_id);
   if (!cart) return next(new appError("cart not found", 404));
 
-  let user = await userModel.findOne({ email: e.customer_email });
+  const user = await userModel.findOne({ email: e.customer_email });
 
   const order = new orderModel({
     user: user._id,
@@ -141,7 +152,7 @@ async function card(e, res) {
 
     return res.status(201).json({ message: "success", order });
   } else {
-    return next(new appError("Error creating cart", 404));
+    return next(new appError("Error creating order", 404));
   }
 }
 

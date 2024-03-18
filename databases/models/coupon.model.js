@@ -14,7 +14,7 @@ const couponSchema = mongoose.Schema(
       min: 0,
     },
     expires: {
-      type: Date,
+      type: String,
       required: [true, "coupon date is required"],
     },
   },

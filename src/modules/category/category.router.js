@@ -7,21 +7,50 @@ import {
   getCategorySchema,
   updateCategorySchema,
 } from "./category.validation.js";
-import { uploadSingleFile } from "../../middleware/fileUpload.js";
+import { fileUpload } from "../../middleware/fileUpload.js";
+import brandRouter from "../brand/brand.router.js";
+import { allowedTo, isConfirmed, protectRoutes } from "../auth/auth.js";
 
 const categoryRouter = express.Router();
 
 categoryRouter.use("/:categoryId/subcategories", subcategoryRouter);
+categoryRouter.use("/:categoryId/brands", brandRouter);
 
 categoryRouter
   .route("/")
-  .post(uploadSingleFile("image","category"),validation(createCategorySchema), categoryController.addCategory)
+  .post(
+    protectRoutes,
+    allowedTo("admin"),
+    isConfirmed,
+    fileUpload().fields([
+      { name: "navImages", maxCount: 2 },
+      { name: "mainSliderImages", maxCount: 5 },
+    ]),
+    validation(createCategorySchema),
+    categoryController.addCategory
+  )
   .get(categoryController.getAllCategories);
 
 categoryRouter
   .route("/:id")
   .get(validation(getCategorySchema), categoryController.getCategory)
-  .put(uploadSingleFile("image","category"),validation(updateCategorySchema), categoryController.updateCategory)
-  .delete(validation(getCategorySchema), categoryController.deleteCategory);
+  .put(
+    protectRoutes,
+    allowedTo("admin"),
+    isConfirmed,
+    fileUpload().fields([
+      { name: "navImages", maxCount: 2 },
+      { name: "mainSliderImages", maxCount: 5 },
+    ]),
+    validation(updateCategorySchema),
+    categoryController.updateCategory
+  )
+  .delete(
+    protectRoutes,
+    allowedTo("admin"),
+    isConfirmed,
+    validation(getCategorySchema),
+    categoryController.deleteCategory
+  );
 
 export default categoryRouter;

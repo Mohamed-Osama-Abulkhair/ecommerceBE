@@ -4,17 +4,39 @@ import { appError } from "../../utils/appError.js";
 import { catchAsyncError } from "../../middleware/catchAsyncError.js";
 
 const protectRoutes = catchAsyncError(async (req, res, next) => {
-  let { token } = req.headers;
-  if (!token) return next(new appError("token not provided", 498));
+  const { token } = req.headers;
+  if (!token) return next(new appError("token not provided", 400));
 
-  let decoded = jwt.verify(token, process.env.JWT_secretKey);
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_secretKey);
+  } catch (error) {
+    if (error.name === "JsonWebTokenError") {
+      return next(new appError("invalid token", 401));
+    } else {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
 
-  let user = await userModel.findById(decoded.userId);
-  if (!user) return next(new appError("old or invalid token", 498));
+  const user = await userModel.findById(decoded.userId);
+  if (!user)
+    return next(new appError("deleted user , old or invalid token", 498));
 
   if (user.passwordChangedAt) {
-    let passwordChangedDate = parseInt(user.passwordChangedAt.getTime() / 1000);
+    const passwordChangedDate = parseInt(user.passwordChangedAt.getTime() / 1000);
     if (passwordChangedDate > decoded.iat)
+      return next(new appError("old or invalid token", 498));
+  }
+
+  if (user.emailChangedAt) {
+    const emailChangedDate = parseInt(user.emailChangedAt.getTime() / 1000);
+    if (emailChangedDate > decoded.iat)
+      return next(new appError("old or invalid token", 498));
+  }
+
+  if (user.loginChangedAt) {
+    const loginChangedDate = parseInt(user.loginChangedAt.getTime() / 1000);
+    if (loginChangedDate > decoded.iat)
       return next(new appError("old or invalid token", 498));
   }
 
@@ -24,7 +46,7 @@ const protectRoutes = catchAsyncError(async (req, res, next) => {
 
 const authorization = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
-  
+
   if (String(id) !== String(req.user._id))
     return next(new appError("U r not authorized to do it ", 498));
   next();
@@ -42,7 +64,7 @@ const allowedTo = (...roles) => {
 };
 
 const isConfirmed = catchAsyncError(async (req, res, next) => {
-  if (!req.user.confirmedEmail)
+  if (!req.user.verified)
     return next(new appError("you should confirm your account first", 401));
   next();
 });

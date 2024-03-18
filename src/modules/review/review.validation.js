@@ -1,9 +1,9 @@
 import Joi from "joi";
 
 const createReviewSchema = Joi.object({
-  comment: Joi.string().min(3).max(20).required(),
+  comment: Joi.string().min(10).max(150).required(),
   product: Joi.string().hex().length(24).required(),
-  ratings: Joi.number().min(0).max(5).required(),
+  ratings: Joi.number().integer().min(0).max(5).required(),
 });
 
 const getReviewSchema = Joi.object({
@@ -11,10 +11,9 @@ const getReviewSchema = Joi.object({
 });
 
 const updateReviewSchema = Joi.object({
-  comment: Joi.string().min(3).max(20),
-  product: Joi.string().hex().length(24),
-  ratings: Joi.number().min(0).max(5),
-  
+  id: Joi.string().hex().length(24).required(),
+  comment: Joi.string().min(3).max(150),
+  ratings: Joi.number().integer().min(0).max(5),
 });
 
 export { createReviewSchema, getReviewSchema, updateReviewSchema };

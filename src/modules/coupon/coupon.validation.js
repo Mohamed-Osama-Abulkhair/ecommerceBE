@@ -1,9 +1,10 @@
 import Joi from "joi";
+import { customDateValidator } from "../../middleware/validation.js";
 
 const createCouponSchema = Joi.object({
-  code: Joi.string().min(3).max(20).required(),
-  discount: Joi.number().min(0).max(100).required(),
-  expires: Joi.date().required(),
+  code: Joi.string().length(6).lowercase().required(),
+  discount: Joi.number().integer().min(0).max(100).required(),
+  expires: Joi.custom(customDateValidator, "date format d/m/y").required(),
 });
 
 const getCouponSchema = Joi.object({
@@ -11,10 +12,10 @@ const getCouponSchema = Joi.object({
 });
 
 const updateCouponSchema = Joi.object({
-  code: Joi.string().min(3).max(20),
+  code: Joi.string().length(6),
   discount: Joi.number().min(0).max(100),
   expires: Joi.date(),
   id: Joi.string().hex().length(24).required(),
-}); 
+});
 
 export { createCouponSchema, getCouponSchema, updateCouponSchema };

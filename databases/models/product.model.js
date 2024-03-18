@@ -7,7 +7,8 @@ const productSchema = mongoose.Schema(
       unique: [true, "product title is unique"],
       trim: true,
       required: [true, "product title is required"],
-      minLength: [2, "too short product name"],
+      minLength: [3, "too short product title"],
+      maxLength: [150, "too short product title"],
     },
     slug: {
       type: String,
@@ -19,10 +20,16 @@ const productSchema = mongoose.Schema(
       required: [true, "product price is required"],
       min: 0,
     },
-    priceAfterDiscount: {
+    discount: {
       type: Number,
-      min: 0,
+      min: 1,
+      max: 100,
     },
+
+    // priceAfterDiscount: {
+    //   type: Number,
+    //   min: 0,
+    // },
     ratingAvg: {
       type: Number,
       min: [1, "rating average must be greater than zero"],
@@ -37,8 +44,8 @@ const productSchema = mongoose.Schema(
       type: String,
       trim: true,
       required: [true, "product description is required"],
-      minLength: [5, "too short product description"],
-      maxLength: [300, "too short product description"],
+      minLength: [10, "too short product description"],
+      maxLength: [700, "too long product description"],
     },
     quantity: {
       type: Number,
@@ -51,8 +58,21 @@ const productSchema = mongoose.Schema(
       default: 0,
       min: 0,
     },
-    imageCover: String,
-    images: [String],
+    imageCover: {
+      id: { type: String, required: true },
+      url: { type: String, required: true },
+    },
+    images: [
+      {
+        id: { type: String, required: true },
+        url: { type: String, required: true },
+      },
+    ],
+    cloudFolder: {
+      type: String,
+      unique: [true, "product folder is unique"],
+      required: [true, "product folder is required"],
+    },
     category: {
       type: mongoose.Types.ObjectId,
       ref: "category",
@@ -69,15 +89,11 @@ const productSchema = mongoose.Schema(
       required: [true, "product brand is required"],
     },
   },
-  { timestamps: true, toJSON: { virtuals: true } }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-productSchema.post("init", (doc) => {
-  doc.imageCover = process.env.baseURL + "/product/" + doc.imageCover;
-  if (doc.images)
-    doc.images = doc.images.map(
-      (image) => process.env.baseURL + "/product/" + image
-    );
+productSchema.virtual("finalPrice").get(function () {
+  return Math.ceil(this.price - (this.price * this.discount || 0) / 100) - 0.01;
 });
 
 productSchema.virtual("productReviews", {
@@ -88,6 +104,10 @@ productSchema.virtual("productReviews", {
 
 productSchema.pre(/^find/, function () {
   this.populate("productReviews");
+});
+
+productSchema.pre("save", function () {
+  this.price = Math.ceil(this.price) - 0.01;
 });
 
 export const productModel = mongoose.model("product", productSchema);

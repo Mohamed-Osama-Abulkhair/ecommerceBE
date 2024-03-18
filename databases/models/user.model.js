@@ -8,28 +8,40 @@ const userSchema = mongoose.Schema(
       trim: true,
       required: [true, "user name required"],
       minLength: [3, "too short user name"],
+      maxLength: [30, "too long user name"],
     },
     email: {
       type: String,
       trim: true,
       required: [true, "email required"],
-      minLength: [3, "too short email"],
+      minLength: [5, "too short email"],
+      maxLength: [100, "too long email"],
       unique: [true, "email must be unique"],
       lowercase: true,
+      validate: {
+        validator: function (value) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return emailRegex.test(value);
+        },
+        message: "Invalid email format.",
+      },
     },
     password: {
       type: String,
       required: true,
-      minLength: [3, "minlength must be greater than 2 characters"],
+      minLength: [8, "password must be greater than 7 characters"],
     },
     passwordChangedAt: Date,
     phone: {
       type: String,
       required: [true, "phone number required"],
     },
-    // profilePic: {
-    //   type: String,
-    // },
+
+    profileImage: {
+      id: { type: String },
+      url: { type: String },
+    },
+
     role: {
       type: String,
       enum: ["user", "admin"],
@@ -50,12 +62,31 @@ const userSchema = mongoose.Schema(
         phone: String,
       },
     ],
+
+    forgetPasswordOTP: {
+      otp: Number,
+      createdAt: Date,
+    },
+
+    passwordChangedAt: Date,
+    emailChangedAt: Date,
+    loginChangedAt: Date,
+
+    ApplyCoupon: Date,
+    getCoupon: Date,
   },
   { timestamps: true }
 );
 
+userSchema.pre(/^find/, function () {
+  this.select(
+    "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -emailChangedAt -__v"
+  );
+});
+
 userSchema.pre("save", function () {
-  this.password = bcrypt.hashSync(this.password, Number(process.env.Round));
+  if (this.password)
+    this.password = bcrypt.hashSync(this.password, Number(process.env.Round));
 });
 
 userSchema.pre("findOneAndUpdate", function () {

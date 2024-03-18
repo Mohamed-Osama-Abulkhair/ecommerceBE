@@ -1,16 +1,28 @@
 import Joi from "joi";
+const title = Joi.string().min(3).max(150);
+const description = Joi.string().min(10).max(700);
+const quantity = Joi.number().min(1);
+const sold = Joi.number().min(0);
+const price = Joi.number().min(1);
+const discount = Joi.number().integer().min(1).max(100);
+const category = Joi.string().hex().length(24);
+const subcategory = Joi.string().hex().length(24);
+const brand = Joi.string().hex().length(24);
+const ratingAvg = Joi.number().min(1);
+const ratingCount = Joi.number().min(1);
 
 const createProductSchema = Joi.object({
-  title: Joi.string().min(3).max(20).required(),
-  description: Joi.string().min(3).max(20).required(),
-  quantity: Joi.number().min(1).required(),
-  sold: Joi.number().min(0).required(),
-  price: Joi.number().min(1).required(),
-  category: Joi.string().hex().length(24).required(),
-  subcategory: Joi.string().hex().length(24).required(),
-  brand: Joi.string().hex().length(24).required(),
-  ratingAvg: Joi.number().min(1).required(),
-  ratingCount: Joi.number().min(1).required(),
+  title: title.required(),
+  description: description.required(),
+  quantity: quantity.required(),
+  sold: sold.required(),
+  price: price.required(),
+  discount,
+  category: category.required(),
+  subcategory: subcategory.required(),
+  brand: brand.required(),
+  ratingAvg: ratingAvg.required(),
+  ratingCount: ratingCount.required(),
 });
 
 const getProductSchema = Joi.object({
@@ -18,16 +30,15 @@ const getProductSchema = Joi.object({
 });
 
 const updateProductSchema = Joi.object({
-  title: Joi.string().min(3).max(20),
-  description: Joi.string().min(3).max(20),
-  quantity: Joi.number().min(1),
-  sold: Joi.number().min(0),
-  price: Joi.number().min(1),
-  category: Joi.string().hex().length(24),
-  subcategory: Joi.string().hex().length(24),
-  brand: Joi.string().hex().length(24),
-  ratingAvg: Joi.number().min(1),
-  ratingCount: Joi.number().min(1),
+  id: Joi.string().hex().length(24).required(),
+  title,
+  description,
+  quantity,
+  price,
+  discount,
+  category,
+  subcategory,
+  brand,
 });
 
 export { createProductSchema, getProductSchema, updateProductSchema };

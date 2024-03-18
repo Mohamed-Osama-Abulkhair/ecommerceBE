@@ -16,7 +16,7 @@ orderRouter
 
 orderRouter
   .route("/:id")
-  .post(validation(createOrderSchema),protectRoutes,allowedTo("user"),orderController.createCashOrder)
+  .post(protectRoutes,allowedTo("user"),validation(createOrderSchema),orderController.createCashOrder)
   
 orderRouter
   .route("/checkout/:id")

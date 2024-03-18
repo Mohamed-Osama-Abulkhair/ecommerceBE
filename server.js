@@ -16,12 +16,14 @@ app.post(
 );
 
 app.use(express.json());
-app.use(express.static("uploads"));
 
 init(app);
 dbConnection();
 
-const port = 3000;
-app.listen(process.env.PORT || port, () =>
-  console.log(`server is listening on port ${port}`)
+dbConnection();
+app.listen(process.env.PORT || process.env.port, () =>
+  console.log(
+    `server is listening on port ${process.env.PORT || process.env.port}`
+  )
 );
+

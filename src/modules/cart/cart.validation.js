@@ -15,7 +15,7 @@ const updateCartSchema = Joi.object({
 });
 
 const applyCouponCartSchema = Joi.object({
-  code: Joi.string().length(5).required(),
+  code: Joi.string().length(6).required(),
 });
 
 export {

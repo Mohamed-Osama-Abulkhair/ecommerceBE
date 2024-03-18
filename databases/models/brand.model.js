@@ -7,7 +7,7 @@ const brandSchema = mongoose.Schema(
       unique: [true, "name is required"],
       trim: true,
       required: true,
-      minLength: [3, "too short brand name"],
+      minLength: [2, "too short brand name"],
     },
     slug: {
       type: String,
@@ -15,14 +15,16 @@ const brandSchema = mongoose.Schema(
       required: true,
     },
     logo: {
-      type: String,
+      id: { type: String, required: true },
+      url: { type: String, required: true },
+    },
+
+    category: {
+      type: mongoose.Types.ObjectId,
+      ref: "category",
     },
   },
   { timestamps: true }
 );
-
-brandSchema.post("init", (doc) => {
-  doc.logo = process.env.baseURL + "/brand/" + doc.logo;
-}); 
 
 export const brandModel = mongoose.model("brand", brandSchema);

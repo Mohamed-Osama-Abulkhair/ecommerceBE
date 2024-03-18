@@ -3,8 +3,7 @@ import { catchAsyncError } from "../../middleware/catchAsyncError.js";
 import { userModel } from "../../../databases/models/user.model.js";
 
 const addAddress = catchAsyncError(async (req, res, next) => {
-
-  let result = await userModel.findByIdAndUpdate(
+  const result = await userModel.findByIdAndUpdate(
     req.user._id,
     { $addToSet: { addresses: req.body } },
     { new: true }
@@ -16,9 +15,9 @@ const addAddress = catchAsyncError(async (req, res, next) => {
 });
 
 const removeAddress = catchAsyncError(async (req, res, next) => {
-  let result = await userModel.findByIdAndUpdate(
+  const result = await userModel.findByIdAndUpdate(
     req.user._id,
-    { $pull: { addresses: {_id:req.body.address }} },
+    { $pull: { addresses: { _id: req.body.address } } },
     { new: true }
   );
 
@@ -28,8 +27,7 @@ const removeAddress = catchAsyncError(async (req, res, next) => {
 });
 
 const getAllAddress = catchAsyncError(async (req, res, next) => {
-  let result = await userModel
-    .findOne({ _id: req.user._id })
+  const result = await userModel.findOne({ _id: req.user._id });
 
   !result && next(new appError("user not found", 404));
   result &&

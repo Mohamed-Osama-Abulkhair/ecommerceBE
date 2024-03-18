@@ -1,60 +1,61 @@
 import Joi from "joi";
 
-const validRoles = ["admin", "user"];
+const nameSchema = Joi.string().min(3).max(30).trim();
+const emailSchema = Joi.string().email().min(5).max(100).trim();
+const passwordSchema = Joi.string()
+  .min(8)
+  .max(30)
+  .trim()
+  .replace(/\s/g, "")
+  .pattern(
+    /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()\-_=+{};:,<.>])(?=.*[a-zA-Z])\S{8,}$/,
+    "password should be at least 8 characters and contain at least one lowercase letter, one uppercase letter, one digit, and one special character"
+  );
+const phoneSchema = Joi.string()
+  .length(11)
+  .pattern(new RegExp("^(012|010|011|015)\\d{8}$"), "egyptian numbers only");
+const idSchema = Joi.string().hex().length(24).required();
 
 const createUserSchema = Joi.object({
-  name: Joi.string().min(3).max(20).required(),
-  email: Joi.string().email().min(3).max(30).required(),
-  password: Joi.string()
-    .min(8)
-    .max(30)
-    .required()
-    .pattern(
-      new RegExp("^[a-zA-Z0-9]{8,30}$"),
-      "password should be between 8 and 30 characters"
-    ),
-  phone: Joi.string()
-    .length(11)
-    .required()
-    .pattern(new RegExp("^(012|010|011|015)\\d{8}$"), "egyptian numbers only"),
-  role: Joi.string().valid(...validRoles),
+  name: nameSchema.required(),
+  email: emailSchema.required(),
+  password: passwordSchema.required(),
+  phone: phoneSchema.required(),
 });
 
 const loginSchema = Joi.object({
-  email: Joi.string().email().min(3).max(30).required(),
-  password: Joi.string()
-    .min(8)
-    .max(30)
-    .required()
-    .pattern(
-      new RegExp("^[a-zA-Z0-9]{8,30}$"),
-      "password should be between 8 and 30 characters "
-    ),
+  email: emailSchema.required(),
+  password: passwordSchema.required(),
 });
 
 const getUserSchema = Joi.object({
-  id: Joi.string().hex().length(24).required(),
+  id: idSchema,
 });
 
 const updateUserSchema = Joi.object({
-  id: Joi.string().hex().length(24).required(),
-  name: Joi.string().min(3).max(20),
-  email: Joi.string().email().min(3).max(30),
-  phone: Joi.string()
-    .length(11)
-    .pattern(new RegExp("^(012|010|011|015)\\d{8}$"), "egyptian numbers only"),
+  id: idSchema,
+  name: nameSchema,
+  email: emailSchema,
+  phone: phoneSchema,
 });
 
 const changePasswordSchema = Joi.object({
-  id: Joi.string().hex().length(24).required(),
-  password: Joi.string()
-    .min(8)
-    .max(30)
+  id: idSchema,
+  oldPassword: passwordSchema,
+  newPassword: passwordSchema.required(),
+});
+
+const forgetPasswordSchema = Joi.object({
+  email: emailSchema.required(),
+});
+
+const verForgetPasswordSchema = Joi.object({
+  email: emailSchema.required(),
+  newPassword: passwordSchema.required(),
+  otpCode: Joi.string()
+    .length(6)
     .required()
-    .pattern(
-      new RegExp("^[a-zA-Z0-9]{8,30}$"),
-      "password should be between 8 and 30 characters"
-    ),
+    .pattern(/^\d{6}$/, "6 numbers only"),
 });
 
 export {
@@ -63,4 +64,6 @@ export {
   getUserSchema,
   updateUserSchema,
   changePasswordSchema,
+  forgetPasswordSchema,
+  verForgetPasswordSchema,
 };

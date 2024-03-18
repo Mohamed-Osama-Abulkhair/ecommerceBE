@@ -9,8 +9,8 @@ const getCategorySchema = Joi.object({
 });
 
 const updateCategorySchema = Joi.object({
-  name: Joi.string().min(3).max(20),
+  name: Joi.string().min(3).max(30),
   id: Joi.string().hex().length(24).required(),
 });
 
-export { createCategorySchema, getCategorySchema,updateCategorySchema };
+export { createCategorySchema, getCategorySchema, updateCategorySchema };

@@ -14,15 +14,28 @@ const categorySchema = mongoose.Schema(
       lowercase: true,
       required: true,
     },
-    image: {
+
+    navImages: [
+      {
+        id: { type: String },
+        url: { type: String },
+      },
+    ],
+
+    mainSliderImages: [
+      {
+        id: { type: String },
+        url: { type: String },
+      },
+    ],
+
+    cloudFolder: {
       type: String,
+      unique: [true, "category folder is unique"],
+      required: [true, "category folder is required"],
     },
   },
   { timestamps: true }
 );
-
-categorySchema.post("init", (doc) => {
-  doc.image = process.env.baseURL + "/category/" + doc.image;
-}); 
 
 export const categoryModel = mongoose.model("category", categorySchema);

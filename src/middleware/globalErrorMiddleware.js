@@ -1,7 +1,8 @@
-let mode = "dev";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const globalErrorMiddleware = (err, req, res, next) => {
-  if (mode == "dev") return devMode(err, res);
+  if (process.env.development) return devMode(err, res);
   prodMode(err, res);
 };
 

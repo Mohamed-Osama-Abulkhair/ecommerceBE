@@ -3,6 +3,7 @@ import { catchAsyncError } from "../../middleware/catchAsyncError.js";
 import { cartModel } from "../../../databases/models/cart.model.js";
 import { productModel } from "../../../databases/models/product.model.js";
 import { couponModel } from "../../../databases/models/coupon.model.js";
+import { userModel } from "../../../databases/models/user.model.js";
 
 // 1- add Product To Cart
 
@@ -11,28 +12,31 @@ function calcTotalPrice(userCart) {
   userCart.cartItems.forEach((elm) => {
     totalPrice += elm.quantity * elm.price;
   });
-  userCart.totalPrice = totalPrice;
+  userCart.totalPrice = totalPrice.toFixed(2);
 }
 
 const addProductToCart = catchAsyncError(async (req, res, next) => {
-  let product = await productModel
+  const product = await productModel
     .findById(req.body.product)
     .select("price quantity");
   if (!product) return next(new appError("product not found", 401));
-  let quantityNeed = req.body.quantity ? req.body.quantity : 1;
+  const quantityNeed = req.body.quantity ? req.body.quantity : 1;
   if (product.quantity >= quantityNeed) {
     req.body.price = product.price;
 
-    let cart = await cartModel.findOne({ user: req.user._id });
+    const cart = await cartModel.findOne({ user: req.user._id });
     if (!cart) {
-      let result = new cartModel({ user: req.user._id, cartItems: [req.body] });
+      const result = new cartModel({
+        user: req.user._id,
+        cartItems: [req.body],
+      });
       calcTotalPrice(result);
 
       await result.save();
       return res.status(201).json({ message: "success", result });
     }
 
-    let item = cart.cartItems.find((elm) => elm.product == req.body.product);
+    const item = cart.cartItems.find((elm) => elm.product == req.body.product);
     if (item && product.quantity >= quantityNeed + item.quantity) {
       item.quantity += req.body.quantity || 1;
     } else if (!item && product.quantity >= quantityNeed) {
@@ -59,12 +63,12 @@ const addProductToCart = catchAsyncError(async (req, res, next) => {
 
 // 2- delete Product from Cart
 const deleteProductFromCart = catchAsyncError(async (req, res, next) => {
-  let cart = await cartModel.findOne({ user: req.user._id });
-  if (!cart) return next(new appError("cart not found", 401));
+  const cart = await cartModel.findOne({ user: req.user._id });
+  if (!cart) return next(new appError("cart not found", 404));
 
-  let item = cart.cartItems.find((item) => item._id == req.params.id);
+  const item = cart.cartItems.find((item) => item._id == req.params.id);
 
-  let result = await cartModel.findOneAndUpdate(
+  const result = await cartModel.findOneAndUpdate(
     { user: req.user._id },
     { $pull: { cartItems: { _id: req.params.id } } },
     { new: true }
@@ -77,26 +81,28 @@ const deleteProductFromCart = catchAsyncError(async (req, res, next) => {
       result.totalPrice - (result.totalPrice * result.discount) / 100;
   }
 
-  !item && next(new appError("item not found", 401));
+  !item && next(new appError("item not found", 404));
   item && res.status(200).json({ message: "success", result });
 });
 
 // 3- update product quantity
 const updateQuantity = catchAsyncError(async (req, res, next) => {
-  let product = await productModel.findById(req.params.id).select("price");
-  if (!product) return next(new appError("product not found", 401));
+  const product = await productModel.findById(req.params.id).select("price");
+  if (!product) return next(new appError("product not found", 404));
 
-  let cart = await cartModel.findOne({ user: req.user._id });
-  if (!cart) return next(new appError("cart not found", 401));
+  const cart = await cartModel.findOne({ user: req.user._id });
+  if (!cart) return next(new appError("cart not found", 404));
 
-  let item = cart.cartItems.find((elm) => elm.product == req.params.id);
+  const item = cart.cartItems.find((elm) => elm.product == req.params.id);
   if (item) item.quantity = req.body.quantity;
 
   calcTotalPrice(cart);
 
   if (cart.discount) {
-    cart.totalPriceAfterDiscount =
-      cart.totalPrice - (cart.totalPrice * cart.discount) / 100;
+    cart.totalPriceAfterDiscount = (
+      cart.totalPrice -
+      (cart.totalPrice * cart.discount) / 100
+    ).toFixed(2);
   }
 
   await cart.save();
@@ -104,28 +110,49 @@ const updateQuantity = catchAsyncError(async (req, res, next) => {
 });
 
 // 4- apply Coupon
-
 const applyCoupon = catchAsyncError(async (req, res, next) => {
-  let coupon = await couponModel.findOne({
-    code: req.body.code,
-    expires: { $gt: Date.now() },
-  });
+  let user = await userModel.findById(req.user._id);
+  if (
+    !user.applyCoupon &&
+    Date.now() - user.applyCoupon.getTime() >= 24 * 60 * 60 * 1000
+  ) {
+    const coupon = await couponModel.findOne({
+      code: req.body.code,
+      expires: { $gt: Date.now() },
+    });
+    if (!coupon) return next(new appError("coupon expired or not found", 401));
 
-  let cart = await cartModel.findOne({ user: req.user._id });
-  if (!cart) return next(new appError("cart not found", 401));
+    user.applyCoupon = Date.now();
+    await user.save();
 
-  cart.totalPriceAfterDiscount =
-    cart.totalPrice - (cart.totalPrice * coupon.discount) / 100;
-  cart.discount = coupon.discount;
+    const cart = await cartModel.findOne({ user: req.user._id });
+    if (!cart) return next(new appError("cart not found", 401));
 
-  await cart.save();
-  res.status(200).json({ message: "success", cart });
+    cart.totalPriceAfterDiscount = (
+      cart.totalPrice -
+      (cart.totalPrice * coupon.discount) / 100
+    ).toFixed(2);
+    cart.discount = coupon.discount;
+
+    await cart.save();
+    return res.status(200).json({ message: "success", cart });
+  }
+  const timeDifference = Date.now() - user.getCoupon.getTime();
+  const hoursPassed = Math.floor(timeDifference / (1000 * 60 * 60));
+
+  next(
+    new appError(
+      `you has apply coupon in last 24 hours, remain : ${
+        24 - hoursPassed
+      } hours`,
+      401
+    )
+  );
 });
 
 // 5- get Logged User Cart
-
 const getLoggedUserCart = catchAsyncError(async (req, res, next) => {
-  let cart = await cartModel
+  const cart = await cartModel
     .findOne({ user: req.user._id })
     .populate("cartItems.product");
 
@@ -135,7 +162,7 @@ const getLoggedUserCart = catchAsyncError(async (req, res, next) => {
 
 // 6- clear Cart
 const clearCart = catchAsyncError(async (req, res, next) => {
-  let cart = await cartModel.findOneAndDelete({ user: req.user._id });
+  const cart = await cartModel.findOneAndDelete({ user: req.user._id });
   res.status(200).json({ message: "success", cart });
 });
 

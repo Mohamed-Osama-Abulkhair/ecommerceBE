@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export const validation = (schema) => {
   return (req, res, next) => {
     let inputs = { ...req.body, ...req.params, ...req.query };
@@ -10,4 +12,12 @@ export const validation = (schema) => {
       next();
     }
   };
+};
+
+export const customDateValidator = (value, helpers) => {
+  const date = moment(value, 'D/M/YYYY', true);
+  if (!date.isValid()) {
+    return helpers.error('any.invalid');
+  }
+  return date.toDate();
 };

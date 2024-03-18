@@ -167,7 +167,7 @@ export const htmlOfEmail = (token, verifyType, title, message) => {
                         <td align="center" bgcolor="#1a82e2" style="border-radius: 6px;">
                           <a href="${
                             token
-                              ? `http://localhost:3000/api/v1/users/${verifyType}/${token}`
+                              ? `${process.env.baseURL}/api/v1/users/${verifyType}/${token}`
                               : `#`
                           }"  target="_blank" style="display: inline-block; padding: 16px 36px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 6px;">${message}</a>
                         </td>
