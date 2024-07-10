@@ -85,7 +85,7 @@ const deleteProductFromCart = catchAsyncError(async (req, res, next) => {
 
 // 3- update product quantity
 const updateQuantity = catchAsyncError(async (req, res, next) => {
-  const product = await productModel.findById(req.params.id).select("price");
+  const product = await productModel.findById(req.params.id);
   if (!product) return next(new appError("product not found", 404));
 
   const cart = await cartModel.findOne({ user: req.user._id });
