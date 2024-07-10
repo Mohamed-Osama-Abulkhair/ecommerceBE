@@ -15,13 +15,16 @@ wishlistRouter
     validation(createWishlistSchema),
     wishlistController.addToWishlist
   )
+  .get(protectRoutes, allowedTo("user"), wishlistController.getAllUserWishlist);
+
+wishlistRouter
+  .route("/:product")
   .delete(
     protectRoutes,
     allowedTo("user"),
     isConfirmed,
     validation(createWishlistSchema),
     wishlistController.removeFromWishlist
-  )
-  .get(protectRoutes, allowedTo("user"), wishlistController.getAllUserWishlist);
+  );
 
 export default wishlistRouter;

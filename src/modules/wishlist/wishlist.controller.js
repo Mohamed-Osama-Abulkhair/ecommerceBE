@@ -18,7 +18,7 @@ const addToWishlist = catchAsyncError(async (req, res, next) => {
 });
 
 const removeFromWishlist = catchAsyncError(async (req, res, next) => {
-  const { product } = req.body;
+  const { product } = req.params;
   const founded = await productModel.findById(product);
   if (!founded) return next(new appError("product not found", 404));
 
