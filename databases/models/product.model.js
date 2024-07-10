@@ -103,6 +103,9 @@ productSchema.virtual("productReviews", {
 });
 
 productSchema.pre(/^find/, function () {
+  this.populate("category");
+  this.populate("subcategory");
+  this.populate("brand");
   this.populate("productReviews");
 });
 
