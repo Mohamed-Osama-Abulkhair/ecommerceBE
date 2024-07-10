@@ -8,11 +8,15 @@ const addToWishlist = catchAsyncError(async (req, res, next) => {
   const founded = await productModel.findById(product);
   if (!founded) return next(new appError("product not found", 404));
 
-  const result = await userModel.findByIdAndUpdate(
-    req.user._id,
-    { $addToSet: { wishlist: product } },
-    { new: true }
-  );
+  const result = await userModel
+    .findByIdAndUpdate(
+      req.user._id,
+      { $addToSet: { wishlist: product } },
+      { new: true }
+    )
+    .select(
+      "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -__v"
+    );
 
   res.status(200).json({ message: "success", result: result.wishlist });
 });
@@ -22,11 +26,15 @@ const removeFromWishlist = catchAsyncError(async (req, res, next) => {
   const founded = await productModel.findById(product);
   if (!founded) return next(new appError("product not found", 404));
 
-  const result = await userModel.findByIdAndUpdate(
-    req.user._id,
-    { $pull: { wishlist: product } },
-    { new: true }
-  );
+  const result = await userModel
+    .findByIdAndUpdate(
+      req.user._id,
+      { $pull: { wishlist: product } },
+      { new: true }
+    )
+    .select(
+      "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -__v"
+    );
 
   res.status(200).json({ message: "success", result: result.wishlist });
 });

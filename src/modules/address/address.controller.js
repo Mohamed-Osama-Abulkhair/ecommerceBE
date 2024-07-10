@@ -14,11 +14,15 @@ const addAddress = catchAsyncError(async (req, res, next) => {
     }
   }
 
-  const result = await userModel.findByIdAndUpdate(
-    req.user._id,
-    { $addToSet: { addresses: req.body } },
-    { new: true }
-  );
+  const result = await userModel
+    .findByIdAndUpdate(
+      req.user._id,
+      { $addToSet: { addresses: req.body } },
+      { new: true }
+    )
+    .select(
+      "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -__v"
+    );
 
   res.status(200).json({ message: "success", result: result.addresses });
 });
@@ -28,11 +32,15 @@ const removeAddress = catchAsyncError(async (req, res, next) => {
 
   for (let i = 0; i < userAd.addresses.length; i++) {
     if (userAd.addresses[i].id.toString() == req.body.address.toString()) {
-      const result = await userModel.findByIdAndUpdate(
-        req.user._id,
-        { $pull: { addresses: { _id: req.body.address } } },
-        { new: true }
-      );
+      const result = await userModel
+        .findByIdAndUpdate(
+          req.user._id,
+          { $pull: { addresses: { _id: req.body.address } } },
+          { new: true }
+        )
+        .select(
+          "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -__v"
+        );
 
       return res
         .status(200)

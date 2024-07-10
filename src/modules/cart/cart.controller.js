@@ -112,7 +112,11 @@ const updateQuantity = catchAsyncError(async (req, res, next) => {
 
 // 4- apply Coupon
 const applyCoupon = catchAsyncError(async (req, res, next) => {
-  let user = await userModel.findById(req.user._id);
+  let user = await userModel
+    .findById(req.user._id)
+    .select(
+      "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -__v"
+    );
   if (
     !user.applyCoupon &&
     Date.now() - user.applyCoupon.getTime() >= 24 * 60 * 60 * 1000

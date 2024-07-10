@@ -63,7 +63,11 @@ const getCoupon = catchAsyncError(async (req, res, next) => {
 
 // 4- get one coupon gift
 const getCouponUserGift = catchAsyncError(async (req, res, next) => {
-  let user = await userModel.findById(req.user._id);
+  let user = await userModel
+    .findById(req.user._id)
+    .select(
+      "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -__v"
+    );
 
   if (
     !user.getCoupon ||
