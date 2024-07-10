@@ -9,8 +9,8 @@
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "engines": {
-    "node": "20.9.0"
+  "engines": {F
+    "node": "18.x"
   },
   "keywords": [],
   "author": "",

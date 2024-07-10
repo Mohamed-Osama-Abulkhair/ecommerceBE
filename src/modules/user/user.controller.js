@@ -5,7 +5,7 @@ import * as factory from "../handlers/factory.handler.js";
 import { sendEmail } from "../../utils/emails/verify.email.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { ApiFeatures, shuffleArray } from "../../utils/ApiFeatures.js";
+import { ApiFeatures } from "../../utils/ApiFeatures.js";
 import cloudinary from "../../utils/cloud.js";
 
 // 1- add user

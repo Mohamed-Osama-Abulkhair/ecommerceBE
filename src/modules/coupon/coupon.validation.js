@@ -12,9 +12,9 @@ const getCouponSchema = Joi.object({
 });
 
 const updateCouponSchema = Joi.object({
-  code: Joi.string().length(6),
-  discount: Joi.number().min(0).max(100),
-  expires: Joi.date(),
+  code: Joi.string().length(6).lowercase(),
+  discount: Joi.number().integer().min(0).max(100),
+  expires: Joi.custom(customDateValidator, "date format d/m/y"),
   id: Joi.string().hex().length(24).required(),
 });
 
