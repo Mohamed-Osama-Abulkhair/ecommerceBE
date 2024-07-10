@@ -11,18 +11,23 @@ const cartSchema = mongoose.Schema(
         product: {
           type: mongoose.Types.ObjectId,
           ref: "product",
-        },quantity: {
+        },
+        quantity: {
           type: Number,
           default: 1,
         },
-        price:Number,
+        price: Number,
       },
     ],
-    totalPrice:Number,
-    totalPriceAfterDiscount:Number,
-    discount:Number,
+    totalPrice: Number,
+    totalPriceAfterDiscount: Number,
+    discount: Number,
   },
   { timestamps: true }
 );
+
+cartSchema.pre(/^find/, function () {
+  this.populate("cartItems.product");
+});
 
 export const cartModel = mongoose.model("cart", cartSchema);
