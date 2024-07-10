@@ -64,11 +64,13 @@ const deleteProductFromCart = catchAsyncError(async (req, res, next) => {
   const cart = await cartModel.findOne({ user: req.user._id });
   if (!cart) return next(new appError("cart not found", 404));
 
-  const item = cart.cartItems.find((item) => item._id == req.params.id);
+  const item = cart.cartItems.find((item) => item.product._id == req.params.id);
+  console.log(item);
+  if (!item) return next(new appError("item not found", 404));
 
   const result = await cartModel.findOneAndUpdate(
     { user: req.user._id },
-    { $pull: { cartItems: { _id: req.params.id } } },
+    { $pull: { cartItems: { _id: item._id } } },
     { new: true }
   );
 
@@ -79,8 +81,7 @@ const deleteProductFromCart = catchAsyncError(async (req, res, next) => {
       result.totalPrice - (result.totalPrice * result.discount) / 100;
   }
 
-  !item && next(new appError("item not found", 404));
-  item && res.status(200).json({ message: "success", result });
+  res.status(200).json({ message: "success", result });
 });
 
 // 3- update product quantity
@@ -92,8 +93,8 @@ const updateQuantity = catchAsyncError(async (req, res, next) => {
   if (!cart) return next(new appError("cart not found", 404));
 
   const item = cart.cartItems.find((elm) => elm.product._id == req.params.id);
-  
-  console.log(item)
+
+  console.log(item);
   if (item) item.quantity = req.body.quantity;
 
   calcTotalPrice(cart);
