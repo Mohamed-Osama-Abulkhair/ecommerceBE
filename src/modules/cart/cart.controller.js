@@ -91,7 +91,9 @@ const updateQuantity = catchAsyncError(async (req, res, next) => {
   const cart = await cartModel.findOne({ user: req.user._id });
   if (!cart) return next(new appError("cart not found", 404));
 
-  const item = cart.cartItems.find((elm) => elm.product == req.params.id);
+  const item = cart.cartItems.find((elm) => elm.product._id == req.params.id);
+  
+  console.log(item)
   if (item) item.quantity = req.body.quantity;
 
   calcTotalPrice(cart);
