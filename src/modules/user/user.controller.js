@@ -26,7 +26,7 @@ const addUser = catchAsyncError(async (req, res, next) => {
     verifyType: "signUpVerify",
   });
 
-  res.status(201).json({ message: "success", result });
+  res.status(201).json({ message: "success" });
 });
 
 // verify Email
