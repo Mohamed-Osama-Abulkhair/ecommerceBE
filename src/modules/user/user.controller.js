@@ -47,11 +47,15 @@ const verifySignUP = async (req, res, next) => {
   const user = await userModel.findOne({ email: decoded.email });
   if (!user) return next(new appError("invalid token", 498));
 
-  const result = await userModel.findOneAndUpdate(
-    { email: decoded.email },
-    { verified: true },
-    { new: true }
-  );
+  const result = await userModel
+    .findOneAndUpdate(
+      { email: decoded.email },
+      { verified: true },
+      { new: true }
+    )
+    .select(
+      "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -emailChangedAt -__v"
+    );
   res.status(201).json({ message: "success", result });
 };
 
@@ -62,6 +66,7 @@ const signIn = catchAsyncError(async (req, res, next) => {
 
   const user = await userModel.findOne({ email });
   if (!user) return next(new appError("incorrect email or password", 401));
+  console.log(user);
   const match = await bcrypt.compare(password, user.password);
 
   if (match) {
@@ -125,16 +130,20 @@ const updateUser = catchAsyncError(async (req, res, next) => {
     if (existsData)
       return next(new appError("Email already belongs to another user", 409));
 
-    result = await userModel.findByIdAndUpdate(
-      req.user._id,
-      {
-        ...req.body,
-        isActive: false,
-        verified: false,
-        emailChangedAt: Date.now(),
-      },
-      { new: true }
-    );
+    result = await userModel
+      .findByIdAndUpdate(
+        req.user._id,
+        {
+          ...req.body,
+          isActive: false,
+          verified: false,
+          emailChangedAt: Date.now(),
+        },
+        { new: true }
+      )
+      .select(
+        "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -__v"
+      );
 
     sendEmail({
       email: req.body.email,
@@ -144,13 +153,17 @@ const updateUser = catchAsyncError(async (req, res, next) => {
       verifyType: "signUpVerify",
     });
   } else {
-    result = await userModel.findByIdAndUpdate(
-      req.user._id,
-      {
-        ...req.body,
-      },
-      { new: true }
-    );
+    result = await userModel
+      .findByIdAndUpdate(
+        req.user._id,
+        {
+          ...req.body,
+        },
+        { new: true }
+      )
+      .select(
+        "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -emailChangedAt -__v"
+      );
   }
 
   !result && next(new appError("user not found", 404));
@@ -190,11 +203,15 @@ const uploadProfileImage = catchAsyncError(async (req, res, next) => {
   if (req.user.profileImage)
     await cloudinary.api.delete_resources(req.user.profileImage.id);
 
-  const result = await userModel.findByIdAndUpdate(
-    req.user._id,
-    { profileImage: { id: public_id, url: secure_url } },
-    { new: true }
-  );
+  const result = await userModel
+    .findByIdAndUpdate(
+      req.user._id,
+      { profileImage: { id: public_id, url: secure_url } },
+      { new: true }
+    )
+    .select(
+      "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -emailChangedAt -__v"
+    );
   !result && next(new appError("user not found", 404));
   result && res.status(200).json({ message: "success", result });
 });
@@ -213,11 +230,15 @@ const forgetPassword = catchAsyncError(async (req, res, next) => {
     createdAt: Date.now(),
   };
 
-  const result = await userModel.findOneAndUpdate(
-    { email },
-    { forgetPasswordOTP: forgetPasswordOTPInstance },
-    { new: true }
-  );
+  const result = await userModel
+    .findOneAndUpdate(
+      { email },
+      { forgetPasswordOTP: forgetPasswordOTPInstance },
+      { new: true }
+    )
+    .select(
+      "-password -passwordChangedAt -loginChangedAt -emailChangedAt -__v"
+    );
   sendEmail({
     email,
     message: "Reset Your Password ✔",
@@ -263,11 +284,15 @@ const verifyForgetPassword = async (req, res, next) => {
 
 //11- log out
 const logOut = catchAsyncError(async (req, res, next) => {
-  const result = await userModel.findByIdAndUpdate(
-    req.user._id,
-    { isActive: false, loginChangedAt: Date.now() },
-    { new: true }
-  );
+  const result = await userModel
+    .findByIdAndUpdate(
+      req.user._id,
+      { isActive: false, loginChangedAt: Date.now() },
+      { new: true }
+    )
+    .select(
+      "-password -forgetPasswordOTP -passwordChangedAt -emailChangedAt -__v"
+    );
   !result && next(new appError("user not found", 404));
   result && res.status(200).json({ message: "success", result });
 });

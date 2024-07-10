@@ -78,12 +78,6 @@ const userSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.pre(/^find/, function () {
-  this.select(
-    "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -emailChangedAt -__v"
-  );
-});
-
 userSchema.pre("save", function () {
   if (this.password)
     this.password = bcrypt.hashSync(this.password, Number(process.env.Round));
