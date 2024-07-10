@@ -15,6 +15,9 @@ import userRouter from "./user/user.router.js";
 import wishlistRouter from "./wishlist/wishlist.router.js";
 
 export const init = (app) => {
+  app.get("/", (req, res, next) => {
+    res.status(200).json({ message: "Welcome to Abulkhair E-commerce App" });
+  });
   app.use("/api/v1/categories", categoryRouter);
   app.use("/api/v1/subcategories", subcategoryRouter);
   app.use("/api/v1/brands", brandRouter);
