@@ -8,7 +8,7 @@ const wishlistRouter = express.Router();
 
 wishlistRouter
   .route("/")
-  .patch(
+  .post(
     protectRoutes,
     allowedTo("user"),
     isConfirmed,
