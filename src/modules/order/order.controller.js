@@ -19,7 +19,7 @@ const createCashOrder = catchAsyncError(async (req, res, next) => {
     user: req.user._id,
     orderItems: cart.cartItems,
     totalOrderPrice,
-    orderDiscount: cart.discount + " %",
+    orderDiscount: cart.discount ? cart.discount + " %" : "",
     shippingAddress: req.body.shippingAddress,
   });
   await order.save();
@@ -133,10 +133,11 @@ async function handleCheckoutEvent(e, res, next) {
     user: user._id,
     orderItems: cart.cartItems,
     totalOrderPrice: e.amount_total / 100,
-    shippingAddress: e.metadata.shippingAddress,
+    shippingAddress: e.metadata,
     paymentMethod: "card",
     isPaid: true,
     paidAt: Date.now(),
+    orderDiscount: cart.discount ? cart.discount + " %" : "",
   });
   await order.save();
 
