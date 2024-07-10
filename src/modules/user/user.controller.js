@@ -66,7 +66,6 @@ const signIn = catchAsyncError(async (req, res, next) => {
 
   const user = await userModel.findOne({ email });
   if (!user) return next(new appError("incorrect email or password", 401));
-  console.log(user);
   const match = await bcrypt.compare(password, user.password);
 
   if (match) {
@@ -75,8 +74,18 @@ const signIn = catchAsyncError(async (req, res, next) => {
       process.env.JWT_secretKey
     );
 
-    user.isActive = true;
-    await user.save();
+    await userModel
+      .findByIdAndUpdate(
+        user._id,
+        {
+          isActive: true,
+        },
+        { new: true }
+      )
+      .select(
+        "-password -forgetPasswordOTP -passwordChangedAt -loginChangedAt -__v"
+      );
+
     return res.json({ message: "success", token });
   }
   next(new appError("incorrect email or password", 401));
@@ -247,7 +256,7 @@ const forgetPassword = catchAsyncError(async (req, res, next) => {
     verifyType: "forgetPasswordVerify",
   });
 
-  res.status(201).json({ message: "success", result });
+  res.status(201).json({ message: "success" });
 });
 
 // verify Forget Password
@@ -279,7 +288,7 @@ const verifyForgetPassword = async (req, res, next) => {
     },
     { new: true }
   );
-  res.status(201).json({ message: "Success", result });
+  res.status(201).json({ message: "Success" });
 };
 
 //11- log out
@@ -294,7 +303,7 @@ const logOut = catchAsyncError(async (req, res, next) => {
       "-password -forgetPasswordOTP -passwordChangedAt -emailChangedAt -__v"
     );
   !result && next(new appError("user not found", 404));
-  result && res.status(200).json({ message: "success", result });
+  result && res.status(200).json({ message: "success" });
 });
 
 export {
