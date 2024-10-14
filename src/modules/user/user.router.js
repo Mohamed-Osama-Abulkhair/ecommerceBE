@@ -58,7 +58,7 @@ userRouter.patch(
   "/changeUserPassword/:id",
   protectRoutes,
   authorization,
-  isConfirmed,
+  // isConfirmed,
   validation(changePasswordSchema),
   userController.changeUserPassword
 );
@@ -67,7 +67,7 @@ userRouter.post(
   "/uploadProfileImage/:id",
   protectRoutes,
   authorization,
-  isConfirmed,
+  // isConfirmed,
   fileUpload().single("profileImage"),
   validation(getUserSchema),
   userController.uploadProfileImage

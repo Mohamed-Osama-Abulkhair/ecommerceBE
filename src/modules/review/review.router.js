@@ -20,7 +20,7 @@ reviewRouter
   .post(
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     validation(createReviewSchema),
     reviewController.addReview
   )
@@ -32,14 +32,14 @@ reviewRouter
   .put(
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     validation(updateReviewSchema),
     reviewController.updateReview
   )
   .delete(
     protectRoutes,
     allowedTo("admin", "user"),
-    isConfirmed,
+    // isConfirmed,
     validation(getReviewSchema),
     reviewController.deleteReview
   );

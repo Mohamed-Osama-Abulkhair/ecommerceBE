@@ -17,20 +17,20 @@ cartRouter
     validation(createCartSchema),
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     cartController.addProductToCart
   )
   .put(
     validation(applyCouponCartSchema),
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     cartController.applyCoupon
   )
   .get(
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     cartController.getLoggedUserCart
   )
   .delete(protectRoutes, allowedTo("user"), cartController.clearCart);
@@ -40,14 +40,14 @@ cartRouter
   .delete(
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     validation(getCartSchema),
     cartController.deleteProductFromCart
   )
   .put(
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     validation(updateCartSchema),
     cartController.updateQuantity
   );

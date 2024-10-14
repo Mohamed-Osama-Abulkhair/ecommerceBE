@@ -53,7 +53,7 @@ couponRouter.get(
   "/user/couponGift",
   protectRoutes,
   allowedTo("user"),
-  isConfirmed,
+  // isConfirmed,
   couponController.getCouponUserGift
 );
 

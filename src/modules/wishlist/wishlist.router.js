@@ -11,7 +11,7 @@ wishlistRouter
   .post(
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     validation(createWishlistSchema),
     wishlistController.addToWishlist
   )
@@ -22,7 +22,7 @@ wishlistRouter
   .delete(
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     validation(createWishlistSchema),
     wishlistController.removeFromWishlist
   );

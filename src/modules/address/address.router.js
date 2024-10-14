@@ -15,20 +15,20 @@ addressRouter
     validation(createAddressSchema),
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     addressController.addAddress
   )
   .delete(
     validation(deleteAddressSchema),
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     addressController.removeAddress
   )
   .get(
     protectRoutes,
     allowedTo("user"),
-    isConfirmed,
+    // isConfirmed,
     addressController.getAllAddress
   );
 
